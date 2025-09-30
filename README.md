@@ -9,3 +9,6 @@ git push -u origin master
 
 to add files to .gitignore just type filename
 for directory type dir_name/
+
+
+Arjun
