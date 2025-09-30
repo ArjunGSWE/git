@@ -24,11 +24,11 @@ jobs:
         with:
           path: ~/.cache/pip
           # Key uses the env variable and requirements.txt hash
-          key: cache-name
+          key: ${{ env.cache-name }}
           restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-
 
-      # 4. Corrected prime-cache step
+      # 4. Corrected the prime-cache step
       - name: prime-cache-641dc02
         run: | # <--- Use pipe for multi-line shell script
           CACHE_STATUS="Cache Hit"
