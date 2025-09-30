@@ -4,7 +4,7 @@ jobs:
   checking_email:
     runs-on: ubuntu-latest
     env:
-      cache-name: cache-641dc02
+      CACHE_NAME: cache-641dc02 # Best practice: Use uppercase for env vars
       
     steps:
       # 1. Checkout repository (Must be first to access requirements.txt)
@@ -17,28 +17,33 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 3. ADDED: The actual Caching Step
+      # 3. Corrected Caching Step
       - name: Cache Python dependencies
-        id: cache-step # <--- ID is REQUIRED to reference its output!
+        id: cache-step
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          # Key uses the env variable and requirements.txt hash
-          key: ${{ env.cache-name }}
+          # FIX: Re-add the hash to the primary key for uniqueness.
+          # This key is what the cache will be SAVED under.
+          key: ${{ runner.os }}-${{ env.CACHE_NAME }}-${{ hashFiles('requirements.txt') }}
+          
+          # This restore-key is a fallback, looking for any cache for the OS and the required name.
+          # It only RESTORES the cache if the primary key is not found.
           restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}-${{ env.CACHE_NAME }}-
 
-      # 4. Corrected the prime-cache step
+      # 4. Corrected prime-cache step
       - name: prime-cache-641dc02
-        run: | # <--- Use pipe for multi-line shell script
+        run: |
+          # The logic is correct, but the output will now reflect the status of the hash-based key.
           CACHE_STATUS="Cache Hit"
-          # Check the output of the step with id 'cache-step'
           if [[ "${{ steps.cache-step.outputs.cache-hit }}" != "true" ]]; then
+            # We are installing dependencies on a cache miss, which is correct.
+            pip install -r requirements.txt || echo "::warning::requirements.txt not found. Skipping install."
             CACHE_STATUS="Cache Miss"
           fi
-          # FIX: use a space instead of a comma
           echo "Cache result for cache-641dc02: $CACHE_STATUS"
 
-      # 5. Your original step (moved to later, though placement doesn't matter much)
+      # 5. Your original step
       - name: '22f1000422@ds.study.iitm.ac.in'
         run: echo "Email checker ran successfully"
