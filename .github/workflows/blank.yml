@@ -1,0 +1,44 @@
+name: Email Checker
+on: [push]
+jobs:
+  checking_email:
+    runs-on: ubuntu-latest
+    env:
+      cache-name: cache-641dc02
+      
+    steps:
+      # 1. Checkout repository (Must be first to access requirements.txt)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python (Required for dependencies)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 3. ADDED: The actual Caching Step
+      - name: Cache Python dependencies
+        id: cache-step # <--- ID is REQUIRED to reference its output!
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          # Key uses the env variable and requirements.txt hash
+          key: cache-name
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-
+
+      # 4. Corrected prime-cache step
+      - name: prime-cache-641dc02
+        run: | # <--- Use pipe for multi-line shell script
+          CACHE_STATUS="Cache Hit"
+          # Check the output of the step with id 'cache-step'
+          if [[ "${{ steps.cache-step.outputs.cache-hit }}" != "true" ]]; then
+            CACHE_STATUS="Cache Miss"
+          fi
+          # FIX: use a space instead of a comma
+          echo "Cache result for cache-641dc02: $CACHE_STATUS"
+
+      # 5. Your original step (moved to later, though placement doesn't matter much)
+      - name: '22f1000422@ds.study.iitm.ac.in'
+        run: echo "Email checker ran successfully"
