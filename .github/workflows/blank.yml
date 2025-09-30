@@ -24,7 +24,7 @@ jobs:
         with:
           path: ~/.cache/pip
           # Key uses the env variable and requirements.txt hash
-          key: ${{ runner.os }}-${{ env.CACHE_KEY }}-${{ hashFiles('requirements.txt') }}
+          key: ${{ env.CACHE_KEY }}
           restore-keys: |
             ${{ runner.os }}-${{ env.CACHE_KEY }}-
 
