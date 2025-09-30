@@ -4,7 +4,7 @@ jobs:
   checking_email:
     runs-on: ubuntu-latest
     env:
-      CACHE_KEY: cache-641dc02
+      cache-name: cache-641dc02
       
     steps:
       # 1. Checkout repository (Must be first to access requirements.txt)
@@ -24,9 +24,9 @@ jobs:
         with:
           path: ~/.cache/pip
           # Key uses the env variable and requirements.txt hash
-          key: cache-641dc02
+          key: cache-name
           restore-keys: |
-            ${{ runner.os }}-${{ env.CACHE_KEY }}-
+            ${{ runner.os }}-${{ env.cache-name }}-
 
       # 4. Corrected prime-cache step
       - name: prime-cache-641dc02
