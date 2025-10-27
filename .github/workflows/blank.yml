@@ -1,49 +1,38 @@
-name: Email Checker
-on: [push]
+name: CI with Caching
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
 jobs:
-  checking_email:
+  build-with-cache:
     runs-on: ubuntu-latest
-    env:
-      CACHE_NAME: cache-641dc02 # Best practice: Use uppercase for env vars
-      
+
     steps:
-      # 1. Checkout repository (Must be first to access requirements.txt)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Python (Required for dependencies)
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+      
+      - name: Create virtual environment
+        run: uv venv
 
-      # 3. Corrected Caching Step
-      - name: Cache Python dependencies
-        id: cache-step
+      - name: Cache uv dependencies
         uses: actions/cache@v4
+        id: cache-uv # Give the step an id to check its output
         with:
-          path: ~/.cache/pip
-          # FIX: Re-add the hash to the primary key for uniqueness.
-          # This key is what the cache will be SAVED under.
-          key: ${{ runner.os }}-${{ env.CACHE_NAME }}-${{ hashFiles('requirements.txt') }}
-          
-          # This restore-key is a fallback, looking for any cache for the OS and the required name.
-          # It only RESTORES the cache if the primary key is not found.
-          restore-keys: |
-            ${{ runner.os }}-${{ env.CACHE_NAME }}-
+          path: ~/.cache/uv
+          key: cache-641dc02
 
-      # 4. Corrected prime-cache step
+      - name: Install dependencies
+        run: uv pip install -r requirements.txt
+
       - name: prime-cache-641dc02
         run: |
-          # The logic is correct, but the output will now reflect the status of the hash-based key.
-          CACHE_STATUS="Cache Hit"
-          if [[ "${{ steps.cache-step.outputs.cache-hit }}" != "true" ]]; then
-            # We are installing dependencies on a cache miss, which is correct.
-            pip install -r requirements.txt || echo "::warning::requirements.txt not found. Skipping install."
-            CACHE_STATUS="Cache Miss"
+          if [[ "${{ steps.cache-uv.outputs.cache-hit }}" == "true" ]]; then
+            echo "Cache hit! Dependencies were restored."
+          else
+            echo "Cache miss. Dependencies were installed and cache will be saved."
           fi
-          echo "Cache result for cache-641dc02: $CACHE_STATUS"
-
-      # 5. Your original step
-      - name: '22f1000422@ds.study.iitm.ac.in'
-        run: echo "Email checker ran successfully"
