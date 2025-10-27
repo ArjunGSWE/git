@@ -15,9 +15,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        
         # ADDED: Explicitly checkout the main branch
         with:
-          ref: main 
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 
 
       - name: Create Empty Commit
         run: |
