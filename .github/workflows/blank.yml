@@ -1,38 +1,54 @@
-name: CI with Caching
+name: Multi-Platform Matrix Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
-  build-with-cache:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20]
+        include:
+          - os: ubuntu-latest
+            node-version: 16
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v5
       
-      - name: Create virtual environment
-        run: uv venv
-
-      - name: Cache uv dependencies
-        uses: actions/cache@v4
-        id: cache-uv # Give the step an id to check its output
+      - name: build-331a91b
+        run: echo "Building for ${{ matrix.os }} with Node.js ${{ matrix.node-version }}"
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.cache/uv
-          key: cache-641dc02
-
-      - name: Install dependencies
-        run: uv pip install -r requirements.txt
-
-      - name: prime-cache-641dc02
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Generate build artifact
         run: |
-          if [[ "${{ steps.cache-uv.outputs.cache-hit }}" == "true" ]]; then
-            echo "Cache hit! Dependencies were restored."
-          else
-            echo "Cache miss. Dependencies were installed and cache will be saved."
-          fi
+          echo "Build Information" > build-output.txt
+          echo "==================" >> build-output.txt
+          echo "OS: ${{ matrix.os }}" >> build-output.txt
+          echo "Node Version: ${{ matrix.node-version }}" >> build-output.txt
+          echo "Build Time: $(date)" >> build-output.txt
+          echo "Runner: ${{ runner.name }}" >> build-output.txt
+          echo "Job Index: ${{ strategy.job-index }}" >> build-output.txt
+          echo "" >> build-output.txt
+          echo "Node.js Info:" >> build-output.txt
+          node --version >> build-output.txt
+          npm --version >> build-output.txt
+        shell: bash
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-fd172b8-${{ matrix.os }}-node${{ matrix.node-version }}
+          path: build-output.txt
+          retention-days: 7
